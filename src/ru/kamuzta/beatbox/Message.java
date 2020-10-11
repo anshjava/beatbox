@@ -1,4 +1,4 @@
-package beatbox;
+package ru.kamuzta.beatbox;
 
 import java.io.Serializable;
 import java.time.*;

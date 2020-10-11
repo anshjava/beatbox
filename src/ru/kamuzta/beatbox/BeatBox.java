@@ -1,4 +1,4 @@
-package beatbox;
+package ru.kamuzta.beatbox;
 
 import java.awt.*;
 import javax.swing.*;
