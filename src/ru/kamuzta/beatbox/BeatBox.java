@@ -105,9 +105,9 @@ public class BeatBox {
 
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
 
-        JButton start = new JButton("Start");
-        start.addActionListener(new MyStartListener());
-        buttonBox.add(start);
+        JButton play = new JButton("Play");
+        play.addActionListener(new MyPlayListener());
+        buttonBox.add(play);
 
         JButton stop = new JButton("Stop");
         stop.addActionListener(new MyStopListener());
@@ -188,11 +188,12 @@ public class BeatBox {
     }
 
     private void buildTrackAndStart() {
-        ArrayList<Integer> trackList = new ArrayList<>();
+        ArrayList<Integer> trackList;
         sequence.deleteTrack(track);
         track = sequence.createTrack();
 
         for (int i = 0; i < 16; i++) {
+            trackList = new ArrayList<>();
             for (int j = 0; j < 16; j++) {
                 JCheckBox jc = checkboxList.get(j + (16 * i));
                 if (jc.isSelected()) {
@@ -272,7 +273,7 @@ public class BeatBox {
         }
     }
 
-    private class MyStartListener implements ActionListener {
+    private class MyPlayListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             buildTrackAndStart();
