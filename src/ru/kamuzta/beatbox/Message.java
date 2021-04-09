@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class Message implements Serializable, Comparable<Message> {
-    //private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private LocalDateTime senderTime;
     private String senderName;
     private String senderMessage;
@@ -82,7 +82,7 @@ public class Message implements Serializable, Comparable<Message> {
         int result = 0;
 
         if (this.equals(o)) {
-            result = 0;
+            return result;
         }
         else if ((result = this.getSenderTime().compareTo(o.getSenderTime())) == 0) {
             if ((result = this.getSenderName().compareTo(o.getSenderName())) == 0) {

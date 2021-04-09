@@ -7,11 +7,11 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class MusicServer {
-    ServerSocket serverSocket;
-    ArrayList<ObjectOutputStream> clientOutputStreams;
+    private ServerSocket serverSocket;
+    private ArrayList<ObjectOutputStream> clientOutputStreams;
 
     public MusicServer(int port) {
-        this.clientOutputStreams = new ArrayList<ObjectOutputStream>();
+        this.clientOutputStreams = new ArrayList<>();
         try {
             this.serverSocket = new ServerSocket(port);
         } catch (IOException e) {
@@ -24,16 +24,16 @@ public class MusicServer {
         try {
             port = Integer.parseInt(args[0]);
         } catch (Exception e) {
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " Have no port argument, used default port parametr");
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " Have no port argument, used default port parametr");
             port = 4242;
         }
         MusicServer ms = new MusicServer(port);
-        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " Server started on port: " + port);
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " Server started on port: " + port);
         ms.setupNetwork();
     }
 
-    public void setupNetwork() {
-        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " waiting for connections...");
+    private void setupNetwork() {
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " waiting for connections...");
         while (true) {
             try {
                 //замираем до момента подключения нового клиента
@@ -49,7 +49,7 @@ public class MusicServer {
     }
 
     //метод транслируем сообщение(два объекта) на исходящий поток каждого подключенного клиента
-    public void tellEveryone(Message msg) {
+    private void tellEveryone(Message msg) {
         try {
             for (ObjectOutputStream clientOut : clientOutputStreams) {
                 clientOut.writeObject(msg);
@@ -60,10 +60,10 @@ public class MusicServer {
 
     }
 
-    public class ClientHandler implements Runnable {
-        ObjectInputStream in;
-        ObjectOutputStream out;
-        Socket clientSocket;
+    class ClientHandler implements Runnable {
+        private ObjectInputStream in;
+        private ObjectOutputStream out;
+        private Socket clientSocket;
 
         public ClientHandler(Socket socket) {
             try {
@@ -79,18 +79,18 @@ public class MusicServer {
 
         @Override
         public void run() {
-            Message msg = null;
+            Message msg;
             String clientName = "";
             try {
                 clientName = (String) in.readObject();
-                System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " " + clientName + " connected");
+                System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " " + clientName + " connected");
 
                 while ((msg = (Message) in.readObject()) != null) {
-                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " got message from " + msg.getSenderName());
+                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " got message from " + msg.getSenderName());
                     tellEveryone(msg);
                 }
             } catch (SocketException | EOFException se) {
-                System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " " + clientName + " disconnected");
+                System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " " + clientName + " disconnected");
                 clientOutputStreams.remove(out);
             } catch (Exception e) {
                 e.printStackTrace();

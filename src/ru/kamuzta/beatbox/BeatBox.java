@@ -12,25 +12,25 @@ import java.net.*;
 import javax.swing.event.*;
 
 public class BeatBox {
-    String userName;
-    String serverIp;
+    private String userName;
+    private String serverIp;
 
-    JFrame theFrame;
-    JPanel mainPanel;
-    JList incomingList;
-    JTextField userMessage;
-    ArrayList<JCheckBox> checkboxList;
-    Vector<Message> messages = new Vector<Message>();
-    Socket sock;
-    ObjectOutputStream out;
-    ObjectInputStream in;
-    Thread remote;
-    HashMap<String, boolean[]> otherSeqsMap = new HashMap<String, boolean[]>();
-    Sequencer sequencer;
-    Sequence sequence;
-    Track track;
+    private JFrame theFrame;
+    private JPanel mainPanel;
+    private JList<Message> incomingList;
+    private JTextField userMessage;
+    private ArrayList<JCheckBox> checkboxList;
+    private Vector<Message> messages = new Vector<>();
+    private Socket sock;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private Thread remote;
+    private HashMap<String, boolean[]> otherSeqsMap = new HashMap<>();
+    private Sequencer sequencer;
+    private Sequence sequence;
+    private Track track;
 
-    String[] instrumentNames = {
+    private String[] instrumentNames = {
             "Bass Drum",
             "Closed Hi-Cat",
             "Open Hi-Cat",
@@ -47,7 +47,7 @@ public class BeatBox {
             "Low-mid Tom",
             "High Agogo",
             "Open Hi Conga"};
-    int[] instruments = {
+    private int[] instruments = {
             34,
             42,
             46,
@@ -77,13 +77,13 @@ public class BeatBox {
         bb.setupMidi();
     }
 
-    public void setupGui() {
+    private void setupGui() {
         theFrame = new JFrame("BeatBox");
         theFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         BorderLayout layout = new BorderLayout();
         JPanel background = new JPanel(layout);
         background.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        checkboxList = new ArrayList<JCheckBox>();
+        checkboxList = new ArrayList<>();
 
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("Menu");
@@ -128,7 +128,7 @@ public class BeatBox {
         userMessage = new JTextField();
         buttonBox.add(userMessage);
 
-        incomingList = new JList();
+        incomingList = new JList<>();
         incomingList.addListSelectionListener(new MyListSelectionListener());
         incomingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane theList = new JScrollPane(incomingList);
@@ -161,7 +161,7 @@ public class BeatBox {
         theFrame.setVisible(true);
     }
 
-    public void setupMidi() {
+    private void setupMidi() {
         try {
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
@@ -173,7 +173,7 @@ public class BeatBox {
         }
     }
 
-    public void setupNetwork() {
+    private void setupNetwork() {
         try {
             sock = new Socket(serverIp, 4242);
             out = new ObjectOutputStream(sock.getOutputStream());
@@ -181,25 +181,23 @@ public class BeatBox {
             in = new ObjectInputStream(sock.getInputStream());
             remote = new Thread(new RemoteReader());
             remote.start();
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " Connected to server " + serverIp + ":4242 successfully");
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " Connected to server " + serverIp + ":4242 successfully");
         } catch (Exception e) {
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " couldn't connect - you'll have to play alone");
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " couldn't connect - you'll have to play alone");
         }
     }
 
-    public void buildTrackAndStart() {
-        ArrayList<Integer> trackList = null;
+    private void buildTrackAndStart() {
+        ArrayList<Integer> trackList = new ArrayList<>();
         sequence.deleteTrack(track);
         track = sequence.createTrack();
 
         for (int i = 0; i < 16; i++) {
-            trackList = new ArrayList<Integer>();
-
             for (int j = 0; j < 16; j++) {
-                JCheckBox jc = (JCheckBox) checkboxList.get(j + (16 * i));
+                JCheckBox jc = checkboxList.get(j + (16 * i));
                 if (jc.isSelected()) {
                     int key = instruments[i];
-                    trackList.add(new Integer(key));
+                    trackList.add(key);
                 } else {
                     trackList.add(null);
                 }
@@ -217,30 +215,25 @@ public class BeatBox {
         }
     }
 
-    public void changeSequence(boolean[] checkboxState) {
+    private void changeSequence(boolean[] checkboxState) {
         for (int i = 0; i < 256; i++) {
-            JCheckBox check = (JCheckBox) checkboxList.get(i);
-            if (checkboxState[i]) {
-                check.setSelected(true);
-            } else {
-                check.setSelected(false);
-            }
+            JCheckBox check = checkboxList.get(i);
+            check.setSelected(checkboxState[i]);
         }
     }
 
-    public void makeTracks(ArrayList list) {
-        Iterator it = list.iterator();
+    private void makeTracks(ArrayList<Integer> list) {
         for (int i = 0; i < 16; i++) {
-            Integer num = (Integer) it.next();
+            Integer num = list.get(i);
             if (num != null) {
-                int numKey = num.intValue();
-                track.add(makeEvent(144, 9, numKey, 100, i));
-                track.add(makeEvent(128, 9, numKey, 100, i + 1));
+                track.add(makeEvent(144, 9, num, 100, i));
+                track.add(makeEvent(128, 9, num, 100, i + 1));
             }
         }
+
     }
 
-    public MidiEvent makeEvent(int comd, int chan, int one, int two, int tick) {
+    private MidiEvent makeEvent(int comd, int chan, int one, int two, int tick) {
         MidiEvent event = null;
         try {
             ShortMessage a = new ShortMessage();
@@ -252,13 +245,13 @@ public class BeatBox {
         return event;
     }
 
-    public class MySendItListener implements ActionListener {
+    private class MySendItListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (sock != null) {
                 boolean[] melodyToSend = new boolean[256];
                 for (int i = 0; i < 256; i++) {
-                    JCheckBox check = (JCheckBox) checkboxList.get(i);
+                    JCheckBox check = checkboxList.get(i);
                     if (check.isSelected()) {
                         melodyToSend[i] = true;
                     }
@@ -266,10 +259,10 @@ public class BeatBox {
                 Message msg = new Message(LocalDateTime.now(), userName, userMessage.getText(), melodyToSend);
                 try {
                     out.writeObject(msg);
-                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " message sended to the server");
+                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " message sended to the server");
 
                 } catch (Exception ex) {
-                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " could not send message to the server");
+                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " could not send message to the server");
                     ex.printStackTrace();
                 }
                 userMessage.setText("");
@@ -279,21 +272,21 @@ public class BeatBox {
         }
     }
 
-    public class MyStartListener implements ActionListener {
+    private class MyStartListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             buildTrackAndStart();
         }
     }
 
-    public class MyStopListener implements ActionListener {
+    private class MyStopListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             sequencer.stop();
         }
     }
 
-    public class MyUpTempoListener implements ActionListener {
+    private class MyUpTempoListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             float tempoFactor = sequencer.getTempoFactor();
@@ -301,7 +294,7 @@ public class BeatBox {
         }
     }
 
-    public class MyDownTempoListener implements ActionListener {
+    private class MyDownTempoListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             float tempoFactor = sequencer.getTempoFactor();
@@ -309,13 +302,13 @@ public class BeatBox {
         }
     }
 
-    public class MyListSelectionListener implements ListSelectionListener {
+    private class MyListSelectionListener implements ListSelectionListener {
         @Override
         public void valueChanged(ListSelectionEvent e) {
             if (e.getValueIsAdjusting()) {
-                Message selected = (Message) incomingList.getSelectedValue();
+                Message selected = incomingList.getSelectedValue();
                 if (selected != null) {
-                    boolean[] selectedState = (boolean[]) otherSeqsMap.get(selected.toString());
+                    boolean[] selectedState = otherSeqsMap.get(selected.toString());
                     changeSequence(selectedState);
                     sequencer.stop();
                     buildTrackAndStart();
@@ -324,7 +317,7 @@ public class BeatBox {
         }
     }
 
-    public class SaveMenuListener implements ActionListener {
+    private class SaveMenuListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -337,7 +330,7 @@ public class BeatBox {
     private void saveFile(File file) {
         boolean[] melodyToSave = new boolean[256];
         for (int i = 0; i < 256; i++) {
-            JCheckBox check = (JCheckBox) checkboxList.get(i);
+            JCheckBox check = checkboxList.get(i);
             if (check.isSelected()) {
                 melodyToSave[i] = true;
             }
@@ -356,13 +349,13 @@ public class BeatBox {
                 }
             }
             bw.close();
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " melody has been saved to file " + file);
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " melody has been saved to file " + file);
         } catch (Exception e) {
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " couldn't save the melody to file");
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " couldn't save the melody to file");
         }
     }
 
-    public class LoadMenuListener implements ActionListener {
+    private class LoadMenuListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -389,13 +382,13 @@ public class BeatBox {
             sequencer.stop();
             buildTrackAndStart();
             br.close();
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " melody has been loaded from file " + file);
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " melody has been loaded from file " + file);
         } catch (Exception e) {
-            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " couldn't load the melody from " + file);
+            System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " couldn't load the melody from " + file);
         }
     }
 
-    public class ConnectMenuListener implements ActionListener {
+    private class ConnectMenuListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -436,7 +429,7 @@ public class BeatBox {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     while ((msg = (Message) in.readObject()) != null) {
-                        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " got an message from " + msg.getSenderName());
+                        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " got an message from " + msg.getSenderName());
                         otherSeqsMap.put(msg.toString(), msg.getSenderMelody());
                         messages.add(msg);
                         incomingList.setListData(messages);
@@ -448,7 +441,7 @@ public class BeatBox {
                     in.close();
                     out.close();
                     sock = null;
-                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.YYYY HH:mm")) + " you have been disconnected from server " + serverIp);
+                    System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) + " you have been disconnected from server " + serverIp);
                 } catch (IOException e) {
 
                 }
