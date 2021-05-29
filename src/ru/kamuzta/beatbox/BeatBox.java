@@ -414,7 +414,7 @@ public class BeatBox {
                     sock = null;
                     remote.interrupt();
                 } catch (IOException ioe) {
-
+//
                 }
             } else {
                 JOptionPane.showMessageDialog(theFrame, "Нет активного соединения");
